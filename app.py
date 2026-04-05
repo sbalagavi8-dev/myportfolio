@@ -6,7 +6,7 @@ from getportfolioholdings import get_dhan_holdings, simplify_holdings
 
 load_dotenv()
 
-app = Flask(__name__, static_folder=".", template_folder=".")
+app = Flask(__name__, static_folder="static", template_folder=".")
 
 ACCESS_TOKEN = os.getenv("DHAN_ACCESS_TOKEN")
 
