@@ -50,11 +50,6 @@ body {
 }
 
 .card .tag-badge.type {
-  background: rgba(107, 114, 128, 0.95);
-  color: #ffffff;
-}
-
-.card .tag-badge.type {
   background: rgba(139, 69, 19, 0.95);
   color: #ffffff;
 }
