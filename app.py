@@ -20,6 +20,7 @@ def sample_holdings():
             "avgCostPrice": 145.75,
             "lastPrice": 171.23,
             "exchange": "NASDAQ",
+            "instrumentType": "STK",
         },
         {
             "tradingSymbol": "TSLA",
@@ -28,6 +29,7 @@ def sample_holdings():
             "avgCostPrice": 595.50,
             "lastPrice": 683.92,
             "exchange": "NASDAQ",
+            "instrumentType": "STK",
         },
         {
             "tradingSymbol": "INFY",
@@ -36,6 +38,7 @@ def sample_holdings():
             "avgCostPrice": 1200.0,
             "lastPrice": 1348.35,
             "exchange": "NSE",
+            "instrumentType": "STK",
         },
         {
             "tradingSymbol": "NIFTYBEES",
@@ -44,6 +47,7 @@ def sample_holdings():
             "avgCostPrice": 250.0,
             "lastPrice": 265.5,
             "exchange": "NSE",
+            "instrumentType": "ETF",
         },
     ]
 

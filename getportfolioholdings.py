@@ -5,6 +5,8 @@ import os
 
 load_dotenv()
 
+ETF_LIST = ["CONSUMER", "ITBEES", "GROWWRAIL", "MOREALTY"]
+
 def safe_float(value, default=0.0):
     try:
         if value is None or value == "":
@@ -59,6 +61,8 @@ def normalize_holding(item: dict, instruments: dict = None):
         profit = (last_price - avg_cost) * qty
         profit_percent = ((last_price - avg_cost) / avg_cost) * 100
 
+    instrument_type = "ETF" if symbol in ETF_LIST else "STK"
+
     normalized = {
         "tradingSymbol": symbol,
         "stockName": name,
@@ -69,6 +73,7 @@ def normalize_holding(item: dict, instruments: dict = None):
         "totalInvested": total_invested,
         "profit": profit,
         "profitPercent": profit_percent,
+        "instrumentType": instrument_type,
     }
     normalized.update({k: v for k, v in item.items() if k not in normalized})
     return normalized
@@ -101,4 +106,4 @@ if __name__ == "__main__":
 
     print(f"Found {len(holdings)} holdings")
     for h in holdings[:5]:  # Print first 5
-        print(f"{h['tradingSymbol']}")
+        print(f"{h}")

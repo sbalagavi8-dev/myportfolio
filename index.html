@@ -17,11 +17,26 @@
         </p>
       </div>
 
-      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
-        <div>
+      <div class="row gy-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-3">
           <h5 class="mb-1">Total Holdings</h5>
           <p id="total-holdings" class="fs-3 fw-semibold">—</p>
         </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <h5 class="mb-1">Total Investment</h5>
+          <p id="total-investment" class="fs-3 fw-semibold">—</p>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <h5 class="mb-1">Current Value</h5>
+          <p id="current-value" class="fs-3 fw-semibold">—</p>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <h5 class="mb-1">P/L</h5>
+          <p id="total-pl" class="fs-3 fw-semibold">—</p>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end mb-4">
         <div>
           <h5 class="mb-1">Data Source</h5>
           <p id="data-source" class="fs-5 text-primary">—</p>
@@ -29,7 +44,12 @@
       </div>
 
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <div></div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-muted small me-2">Filter:</span>
+          <button id="filter-all" class="btn btn-outline-primary btn-sm">All</button>
+          <button id="filter-etf" class="btn btn-outline-primary btn-sm">ETF</button>
+          <button id="filter-stk" class="btn btn-outline-primary btn-sm">STK</button>
+        </div>
         <div class="d-flex align-items-center gap-2">
           <span class="text-muted small me-2">Sort by:</span>
           <button id="sort-name" class="btn btn-outline-primary btn-sm">Name</button>
@@ -47,6 +67,9 @@
       const statusElement = document.getElementById("status");
       const holdingsRow = document.getElementById("holdings-row");
       const totalHoldings = document.getElementById("total-holdings");
+      const totalInvestment = document.getElementById("total-investment");
+      const currentValue = document.getElementById("current-value");
+      const totalPl = document.getElementById("total-pl");
       const dataSource = document.getElementById("data-source");
 
       let currentHoldings = [];
@@ -150,23 +173,26 @@
 
           if (!response.ok || !result.holdings) {
             showStatus("Unable to load holdings. Check your token or network.", "danger");
-            totalHoldings.textContent = "0";
+            currentHoldings = [];
+            holdingsRow.innerHTML = "";
+            updateTotals();
             dataSource.textContent = "error";
             return;
           }
 
           const holdings = result.holdings;
-          totalHoldings.textContent = holdings.length;
           dataSource.textContent = result.source || "unknown";
           currentHoldings = holdings;
 
           if (holdings.length === 0) {
             showStatus("No holdings were returned. Add holdings to your portfolio.", "warning");
+            updateTotals();
             return;
           }
 
           hideStatus();
-          sortHoldings();
+          updateTotals();
+          filterAndSortHoldings();
         } catch (error) {
           showStatus("Failed to fetch holdings. Open browser console for details.", "danger");
           console.error(error);
@@ -175,15 +201,43 @@
 
       let sortField = 'name'; // default sort field
       let sortAsc = true; // true for ascending, false for descending
+      let currentFilter = 'all'; // 'all', 'etf', 'stk'
 
-      function updateSortButtons() {
-        const buttons = {
+      function updateTotals() {
+        let filtered = [...currentHoldings];
+        
+        // Filter
+        if (currentFilter === 'etf') {
+          filtered = filtered.filter(item => item.instrumentType === 'ETF');
+        } else if (currentFilter === 'stk') {
+          filtered = filtered.filter(item => item.instrumentType === 'STK');
+        }
+
+        const count = filtered.length;
+        const investment = filtered.reduce((sum, item) => sum + (item.totalInvested || 0), 0);
+        const value = filtered.reduce((sum, item) => {
+          const qty = item.totalQty || 0;
+          const price = item.lastPrice || 0;
+          return sum + (qty * price);
+        }, 0);
+        const pl = filtered.reduce((sum, item) => sum + (item.profit || 0), 0);
+
+        totalHoldings.textContent = count;
+        totalInvestment.textContent = `₹${investment.toFixed(0)}`;
+        currentValue.textContent = `₹${value.toFixed(0)}`;
+        totalPl.textContent = pl >= 0 ? `₹${pl.toFixed(0)}` : `-₹${Math.abs(pl).toFixed(0)}`;
+        totalPl.className = pl >= 0 ? 'fs-3 fw-semibold text-success' : 'fs-3 fw-semibold text-danger';
+      }
+
+      function updateButtons() {
+        // Update sort buttons
+        const sortButtons = {
           name: document.getElementById('sort-name'),
           invested: document.getElementById('sort-invested'),
           pl: document.getElementById('sort-pl'),
         };
 
-        Object.entries(buttons).forEach(([field, button]) => {
+        Object.entries(sortButtons).forEach(([field, button]) => {
           if (!button) return;
           if (sortField === field) {
             button.classList.remove('btn-outline-primary');
@@ -198,12 +252,40 @@
         toggleButton.textContent = sortAsc ? 'Asc' : 'Desc';
         toggleButton.classList.toggle('btn-secondary', !sortAsc);
         toggleButton.classList.toggle('btn-outline-secondary', sortAsc);
+
+        // Update filter buttons
+        const filterButtons = {
+          all: document.getElementById('filter-all'),
+          etf: document.getElementById('filter-etf'),
+          stk: document.getElementById('filter-stk'),
+        };
+
+        Object.entries(filterButtons).forEach(([filter, button]) => {
+          if (!button) return;
+          if (currentFilter === filter) {
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-primary');
+          } else {
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-outline-primary');
+          }
+        });
       }
 
-      function sortHoldings() {
-        updateSortButtons();
-        let sorted = [...currentHoldings];
-        sorted.sort((a, b) => {
+      function filterAndSortHoldings() {
+        updateButtons();
+        updateTotals();
+        let filtered = [...currentHoldings];
+        
+        // Filter
+        if (currentFilter === 'etf') {
+          filtered = filtered.filter(item => item.instrumentType === 'ETF');
+        } else if (currentFilter === 'stk') {
+          filtered = filtered.filter(item => item.instrumentType === 'STK');
+        }
+        
+        // Sort
+        filtered.sort((a, b) => {
           let aVal, bVal;
           switch (sortField) {
             case 'name':
@@ -227,25 +309,39 @@
             return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
           }
         });
-        holdingsRow.innerHTML = sorted.map((item, index) => renderCard(item, index)).join("");
+        holdingsRow.innerHTML = filtered.map((item, index) => renderCard(item, index)).join("");
       }
 
       // Event listeners for sort buttons
       document.getElementById('sort-name').addEventListener('click', () => {
         sortField = 'name';
-        sortHoldings();
+        filterAndSortHoldings();
       });
       document.getElementById('sort-invested').addEventListener('click', () => {
         sortField = 'invested';
-        sortHoldings();
+        filterAndSortHoldings();
       });
       document.getElementById('sort-pl').addEventListener('click', () => {
         sortField = 'pl';
-        sortHoldings();
+        filterAndSortHoldings();
       });
       document.getElementById('sort-toggle').addEventListener('click', () => {
         sortAsc = !sortAsc;
-        sortHoldings();
+        filterAndSortHoldings();
+      });
+
+      // Event listeners for filter buttons
+      document.getElementById('filter-all').addEventListener('click', () => {
+        currentFilter = 'all';
+        filterAndSortHoldings();
+      });
+      document.getElementById('filter-etf').addEventListener('click', () => {
+        currentFilter = 'etf';
+        filterAndSortHoldings();
+      });
+      document.getElementById('filter-stk').addEventListener('click', () => {
+        currentFilter = 'stk';
+        filterAndSortHoldings();
       });
 
       loadHoldings();
