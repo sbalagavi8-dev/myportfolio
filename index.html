@@ -3,80 +3,174 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portfolio Dashboard</title>
+    <title>Portfolio Dashboard - Dhan API</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="static/styles.css" />
+    <style>
+      /* Mobile-first perfection matching your screenshot */
+      :root {
+        --loss-heavy: linear-gradient(135deg, #ff6b6b, #ff5252);
+        --loss-medium: linear-gradient(135deg, #ffa726, #ff9800);
+        --profit: linear-gradient(135deg, #4caf50, #66bb6a);
+        --card-theme-1: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        --card-theme-2: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        --card-theme-3: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        --card-theme-4: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+      }
+
+      body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+      
+      .card-theme-1 { background: var(--card-theme-1) !important; }
+      .card-theme-2 { background: var(--card-theme-2) !important; }
+      .card-theme-3 { background: var(--card-theme-3) !important; }
+      .card-theme-4 { background: var(--card-theme-4) !important; }
+      
+      .profit { background: var(--profit) !important; color: white !important; }
+      .loss-heavy { background: var(--loss-heavy) !important; color: white !important; }
+      .loss-medium { background: var(--loss-medium) !important; color: white !important; }
+
+      .hover-card {
+        transition: all 0.2s ease;
+        border: none !important;
+        border-radius: 16px !important;
+      }
+      .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
+      }
+
+      /* Badge perfection */
+      .tag-badge {
+        font-size: 0.65rem !important;
+        padding: 0.3rem 0.6rem !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+      }
+      .tag-badge.qty { background: #e3f2fd !important; color: #1976d2 !important; }
+      .tag-badge.inv { background: #f3e5f5 !important; color: #7b1fa2 !important; }
+      .tag-badge.market { background: #e8f5e8 !important; color: #388e3c !important; }
+      .tag-badge.type { background: #fff3e0 !important; color: #f57c00 !important; }
+
+      /* Mobile optimizations */
+      @media (max-width: 576px) {
+        .card { margin-bottom: 1rem !important; padding: 1rem !important; }
+        .card-body { padding: 0.75rem !important; }
+        .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.75rem; }
+        .progress { height: 6px !important; }
+        h1 { font-size: 1.75rem !important; }
+      }
+
+      /* Progress bar */
+      .progress {
+        height: 8px !important;
+        background: #f8f9fa !important;
+        border-radius: 4px;
+      }
+      .progress-bar {
+        background: linear-gradient(90deg, var(--profit), #81c784) !important;
+        border-radius: 4px;
+      }
+
+      /* Filter scroll */
+      .filter-scroll { 
+        overflow-x: auto; 
+        scrollbar-width: none; 
+        -ms-overflow-style: none; 
+      }
+      .filter-scroll::-webkit-scrollbar { display: none; }
+
+      /* Stats cards */
+      .stat-card {
+        background: rgba(255,255,255,0.8);
+        border-radius: 12px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+      }
+    </style>
   </head>
   <body>
-    <div class="container py-5">
-      <div class="text-center mb-5">
-        <span class="badge bg-primary mb-3">Portfolio Visualizer</span>
-        <h1 class="display-6 fw-bold">My Portfolio Holdings</h1>
-        <p class="text-secondary mx-auto" style="max-width: 640px;">
-          A reactive dashboard that loads your holdings and displays each stock as a modern card.
+    <div class="container py-4 py-md-5">
+      <!-- Header -->
+      <div class="text-center mb-4 mb-md-5">
+        <span class="badge bg-primary mb-3 px-3 py-2 fs-6">Portfolio Visualizer</span>
+        <h1 class="display-5 display-md-4 fw-bold mb-3">My Portfolio Holdings</h1>
+        <p class="text-muted mx-auto fw-medium" style="max-width: 600px;">
+          Dhan API powered dashboard showing your holdings as modern cards
         </p>
       </div>
 
-      <div class="row gy-3 mb-4">
-        <div class="col-12 col-sm-6 col-md-3">
-          <h5 class="mb-1">Total Holdings</h5>
-          <p id="total-holdings" class="fs-3 fw-semibold">—</p>
+      <!-- Stats Row -->
+      <div class="row g-3 g-md-4 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-card text-center">
+            <h6 class="mb-1 small fw-bold text-muted">Total Holdings</h6>
+            <p id="total-holdings" class="fs-3 fw-bold mb-0">—</p>
+          </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <h5 class="mb-1">Total Investment</h5>
-          <p id="total-investment" class="fs-3 fw-semibold">—</p>
+        <div class="col-6 col-md-3">
+          <div class="stat-card text-center">
+            <h6 class="mb-1 small fw-bold text-muted">Total Investment</h6>
+            <p id="total-investment" class="fs-3 fw-bold mb-0">—</p>
+          </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <h5 class="mb-1">Current Value</h5>
-          <p id="current-value" class="fs-3 fw-semibold">—</p>
+        <div class="col-6 col-md-3">
+          <div class="stat-card text-center">
+            <h6 class="mb-1 small fw-bold text-muted">Current Value</h6>
+            <p id="current-value" class="fs-3 fw-bold mb-0">—</p>
+          </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <h5 class="mb-1">P/L</h5>
-          <p id="total-pl" class="fs-3 fw-semibold">—</p>
+        <div class="col-6 col-md-3">
+          <div class="stat-card text-center">
+            <h6 class="mb-1 small fw-bold text-muted">P/L</h6>
+            <p id="total-pl" class="fs-3 fw-bold mb-0">—</p>
+          </div>
         </div>
       </div>
 
-      <!-- <div class="d-flex justify-content-end mb-4">
-        <div>
-          <h5 class="mb-1">Data Source</h5>
-          <p id="data-source" class="fs-5 text-primary">—</p>
+      <!-- Controls -->
+      <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="text-muted small me-2 align-self-center">Filter:</span>
+          <div class="filter-scroll d-flex gap-1 flex-nowrap">
+            <button id="filter-all" class="btn btn-outline-primary btn-sm active-filter">All</button>
+            <button id="filter-etf" class="btn btn-outline-primary btn-sm">ETF</button>
+            <button id="filter-stk" class="btn btn-outline-primary btn-sm">STK</button>
+          </div>
         </div>
-      </div> -->
-
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-2">
-          <span class="text-muted small me-2">Filter:</span>
-          <button id="filter-all" class="btn btn-outline-primary btn-sm">All</button>
-          <button id="filter-etf" class="btn btn-outline-primary btn-sm">ETF</button>
-          <button id="filter-stk" class="btn btn-outline-primary btn-sm">STK</button>
-        </div>
-        <div class="d-flex align-items-center gap-2">
+        
+        <div class="d-flex flex-wrap gap-2 align-items-center">
           <span class="text-muted small me-2">Sort by:</span>
-          <button id="sort-name" class="btn btn-outline-primary btn-sm">Name</button>
-          <button id="sort-invested" class="btn btn-outline-primary btn-sm">Invested</button>
-          <button id="sort-pl" class="btn btn-outline-primary btn-sm">P/L%</button>
-          <button id="sort-toggle" class="btn btn-outline-secondary btn-sm">Asc</button>
+          <div class="filter-scroll d-flex gap-1 flex-nowrap">
+            <button id="sort-name" class="btn btn-outline-primary btn-sm active-sort">Name</button>
+            <button id="sort-invested" class="btn btn-outline-primary btn-sm">Invested</button>
+            <button id="sort-pl" class="btn btn-outline-primary btn-sm">P/L%</button>
+            <button id="sort-toggle" class="btn btn-outline-secondary btn-sm">Asc</button>
+          </div>
         </div>
       </div>
 
-      <div id="status" class="alert alert-info d-none" role="alert"></div>
-      <div id="holdings-row" class="row gy-4"></div>
+      <!-- Status -->
+      <div id="status" class="alert alert-info d-none mb-4" role="alert"></div>
+      
+      <!-- Holdings -->
+      <div id="holdings-row" class="row g-3 g-md-4"></div>
     </div>
 
     <script>
       const statusElement = document.getElementById("status");
       const holdingsRow = document.getElementById("holdings-row");
-      const totalHoldings = document.getElementById("total-holdings");
-      const totalInvestment = document.getElementById("total-investment");
-      const currentValue = document.getElementById("current-value");
-      const totalPl = document.getElementById("total-pl");
-    //   const dataSource = document.getElementById("data-source");
+      const totalHoldingsEl = document.getElementById("total-holdings");
+      const totalInvestmentEl = document.getElementById("total-investment");
+      const currentValueEl = document.getElementById("current-value");
+      const totalPlEl = document.getElementById("total-pl");
 
       let currentHoldings = [];
+      let sortField = 'name';
+      let sortAsc = true;
+      let currentFilter = 'all';
 
       function showStatus(message, type = "info") {
         statusElement.textContent = message;
-        statusElement.className = `alert alert-${type}`;
+        statusElement.className = `alert alert-${type} mb-4`;
         statusElement.classList.remove("d-none");
       }
 
@@ -86,76 +180,75 @@
 
       function renderCard(item, index) {
         const symbol = item.tradingSymbol || item.symbol || "Unknown";
-        const rawName = item.stockName || item.companyName || item.symbolName || symbol;
-        const name = rawName !== symbol ? rawName : null;
+        const name = (item.stockName || item.companyName || "").trim() || null;
         const qty = item.totalQty ?? item.qty ?? 0;
         const avgPrice = item.avgCostPrice ?? item.averagePrice ?? 0;
-        const lastPrice = item.lastPrice ?? item.closePrice ?? item.price ?? null;
+        const lastPrice = item.lastPrice ?? item.closePrice ?? item.price ?? 0;
         const lastPriceValue = Number(lastPrice);
         const lastPriceText = Number.isFinite(lastPriceValue) ? `₹${lastPriceValue.toFixed(2)}` : "—";
-        const rawExchange = (item.exchange || item.stockExchange || "ALL").toUpperCase();
-        const marketTag = rawExchange === "ALL" ? "NSE" : rawExchange.includes("BSE") ? "BSE" : "NSE";
-        const instrumentType = item.instrumentType || "UNKNOWN";
-        const typeTag = instrumentType === "ETF" ? "ETF" : "STK";
+        
+        const marketTag = (item.exchange || "NSE").includes("BSE") ? "BSE" : "NSE";
+        const typeTag = item.instrumentType === "ETF" ? "ETF" : "STK";
         const totalInvested = qty * avgPrice;
-        const profitValue = Number.isFinite(lastPriceValue) ? (lastPriceValue - avgPrice) * qty : null;
-        const profitPercent = Number.isFinite(lastPriceValue) && avgPrice > 0 ? ((lastPriceValue - avgPrice) / avgPrice) * 100 : null;
-        const profitText = profitValue === null ? "—" : `₹${profitValue.toFixed(2)}`;
-        const percentText = profitPercent === null ? "—" : `${profitPercent.toFixed(2)}%`;
-        const profitClass = profitValue === null ? "text-muted" : profitValue >= 0 ? "text-success" : "text-danger";
-        const themeClass = [`card-theme-1`, `card-theme-2`, `card-theme-3`, `card-theme-4`][index % 4];
-        let cardClass = themeClass;
-
-        if (profitPercent !== null) {
-          if (profitPercent > 0) {
-            cardClass += " profit";
-          } else {
-            const lossPercent = Math.abs(profitPercent);
-            if (lossPercent < 10) cardClass += " loss-light";
-            else if (lossPercent < 25) cardClass += " loss-medium";
-            else cardClass += " loss-heavy";
-          }
+        
+        const profitValue = Number.isFinite(lastPriceValue) ? (lastPriceValue - avgPrice) * qty : 0;
+        const profitPercent = Number.isFinite(lastPriceValue) && avgPrice > 0 
+          ? ((lastPriceValue - avgPrice) / avgPrice) * 100 
+          : 0;
+        
+        const profitText = `₹${Math.abs(profitValue).toFixed(0)}`;
+        const percentText = `${profitPercent.toFixed(1)}%`;
+        const profitClass = profitValue >= 0 ? "text-success" : "text-danger";
+        
+        const themeClass = [`card-theme-${(index % 4) + 1}`];
+        let cardClass = themeClass.join(" ");
+        
+        if (profitPercent > 0) {
+          cardClass += " profit";
+        } else {
+          const lossPercent = Math.abs(profitPercent);
+          if (lossPercent < 10) cardClass += " loss-light";
+          else if (lossPercent < 25) cardClass += " loss-medium";
+          else cardClass += " loss-heavy";
         }
 
-        const progressWidth = Number.isFinite(profitPercent) ? Math.min(Math.max(profitPercent + 50, 10), 100) : 50;
+        const progressWidth = Math.min(Math.max(profitPercent + 50, 10), 100);
 
         return `
-          <div class="col-12 col-sm-6 col-md-6 col-xl-4">
+          <div class="col-6 col-lg-4 col-xl-3">
             <div class="card h-100 shadow-sm hover-card ${cardClass}">
-              <div class="card-body p-3 d-flex flex-column justify-content-between">
-                <div>
-                  <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
-                    <div>
-                      <h6 class="card-title fw-bold mb-1">${symbol}</h6>
-                      ${name ? `<p class="text-muted small mb-1">${name}</p>` : ""}
-                    </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                      <span class="badge tag-badge qty py-1 px-2">Qty ${qty}</span>
-                      <span class="badge tag-badge inv py-1 px-2">Inv ₹${totalInvested.toFixed(0)}</span>
-                      <span class="badge tag-badge market py-1 px-2">${marketTag}</span>
-                      <span class="badge tag-badge type py-1 px-2">${typeTag}</span>
-                    </div>
+              <div class="card-body p-2 p-md-3 d-flex flex-column h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2 gap-2 flex-grow-1">
+                  <div>
+                    <h6 class="card-title fw-bold mb-1 fs-5 fs-md-4">${symbol}</h6>
+                    ${name ? `<p class="text-muted small mb-0">${name}</p>` : ""}
                   </div>
-
-                  <div class="d-flex justify-content-between align-items-end mb-2 small text-muted">
-                    <div>
-                      <p class="mb-1">Avg Cost</p>
-                      <p class="fw-semibold mb-0">₹${avgPrice.toFixed(2)}</p>
-                    </div>
-                    <div class="text-center">
-                      <p class="mb-1">Last</p>
-                      <p class="fw-semibold mb-0">${lastPriceText}</p>
-                    </div>
-                    <div class="text-end ${profitClass}">
-                      <p class="mb-1">P/L</p>
-                      <p class="fw-semibold mb-0">${profitText}</p>
-                      <p class="small mb-0">${percentText}</p>
-                    </div>
+                  <div class="d-flex flex-wrap gap-1">
+                    <span class="badge tag-badge qty">Qty ${qty}</span>
+                    <span class="badge tag-badge inv">₹${totalInvested.toLocaleString()}</span>
+                    <span class="badge tag-badge market">${marketTag}</span>
+                    <span class="badge tag-badge type">${typeTag}</span>
                   </div>
                 </div>
 
-                <div class="mt-3">
-                  <div class="progress rounded-pill" style="height: 8px;">
+                <div class="d-flex justify-content-between align-items-end mb-2 small text-muted flex-grow-1">
+                  <div class="text-start">
+                    <small class="mb-1 d-block">Avg</small>
+                    <div class="fw-semibold">₹${avgPrice.toFixed(2)}</div>
+                  </div>
+                  <div class="text-center">
+                    <small class="mb-1 d-block">Last</small>
+                    <div class="fw-semibold">${lastPriceText}</div>
+                  </div>
+                  <div class="text-end ${profitClass}">
+                    <small class="mb-1 d-block">P/L</small>
+                    <div class="fw-semibold">${profitText}</div>
+                    <small class="mb-0">${percentText}</small>
+                  </div>
+                </div>
+
+                <div class="mt-auto">
+                  <div class="progress rounded-pill">
                     <div class="progress-bar bg-gradient" role="progressbar" style="width: ${progressWidth}%"></div>
                   </div>
                 </div>
@@ -172,178 +265,92 @@
           const result = await response.json();
 
           if (!response.ok || !result.holdings) {
-            showStatus("Unable to load holdings. Check your token or network.", "danger");
-            currentHoldings = [];
-            holdingsRow.innerHTML = "";
-            updateTotals();
-            dataSource.textContent = "error";
+            showStatus("No holdings found. Connect Dhan API or check backend.", "warning");
             return;
           }
 
-          const holdings = result.holdings;
-        //   dataSource.textContent = result.source || "unknown";
-          currentHoldings = holdings;
-
-          if (holdings.length === 0) {
-            showStatus("No holdings were returned. Add holdings to your portfolio.", "warning");
-            updateTotals();
-            return;
-          }
-
+          currentHoldings = result.holdings;
           hideStatus();
-          updateTotals();
           filterAndSortHoldings();
         } catch (error) {
-          showStatus("Failed to fetch holdings. Open browser console for details.", "danger");
+          showStatus("Failed to load. Check console.", "danger");
           console.error(error);
         }
       }
 
-      let sortField = 'name'; // default sort field
-      let sortAsc = true; // true for ascending, false for descending
-      let currentFilter = 'all'; // 'all', 'etf', 'stk'
-
-      function updateTotals() {
-        let filtered = [...currentHoldings];
-        
-        // Filter
-        if (currentFilter === 'etf') {
-          filtered = filtered.filter(item => item.instrumentType === 'ETF');
-        } else if (currentFilter === 'stk') {
-          filtered = filtered.filter(item => item.instrumentType === 'STK');
-        }
-
+      function updateTotals(filtered = currentHoldings) {
         const count = filtered.length;
         const investment = filtered.reduce((sum, item) => sum + (item.totalInvested || 0), 0);
         const value = filtered.reduce((sum, item) => {
-          const qty = item.totalQty || 0;
-          const price = item.lastPrice || 0;
-          return sum + (qty * price);
+          return sum + ((item.totalQty || 0) * (item.lastPrice || 0));
         }, 0);
         const pl = filtered.reduce((sum, item) => sum + (item.profit || 0), 0);
 
-        totalHoldings.textContent = count;
-        totalInvestment.textContent = `₹${investment.toFixed(0)}`;
-        currentValue.textContent = `₹${value.toFixed(0)}`;
-        totalPl.textContent = pl >= 0 ? `₹${pl.toFixed(0)}` : `-₹${Math.abs(pl).toFixed(0)}`;
-        totalPl.className = pl >= 0 ? 'fs-3 fw-semibold text-success' : 'fs-3 fw-semibold text-danger';
+        totalHoldingsEl.textContent = count;
+        totalInvestmentEl.textContent = `₹${investment.toLocaleString()}`;
+        currentValueEl.textContent = `₹${value.toLocaleString()}`;
+        
+        const plText = pl >= 0 ? `+₹${pl.toLocaleString()}` : `-₹${Math.abs(pl).toLocaleString()}`;
+        totalPlEl.textContent = plText;
+        totalPlEl.className = pl >= 0 ? 'fs-3 fw-bold text-success' : 'fs-3 fw-bold text-danger';
       }
 
       function updateButtons() {
-        // Update sort buttons
-        const sortButtons = {
-          name: document.getElementById('sort-name'),
-          invested: document.getElementById('sort-invested'),
-          pl: document.getElementById('sort-pl'),
-        };
-
-        Object.entries(sortButtons).forEach(([field, button]) => {
-          if (!button) return;
-          if (sortField === field) {
-            button.classList.remove('btn-outline-primary');
-            button.classList.add('btn-primary');
-          } else {
-            button.classList.remove('btn-primary');
-            button.classList.add('btn-outline-primary');
-          }
+        // Filter buttons
+        document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+          btn.classList.toggle('btn-primary', btn.id.replace('filter-', '') === currentFilter);
+          btn.classList.toggle('btn-outline-primary', btn.id.replace('filter-', '') !== currentFilter);
         });
 
-        const toggleButton = document.getElementById('sort-toggle');
-        toggleButton.textContent = sortAsc ? 'Asc' : 'Desc';
-        toggleButton.classList.toggle('btn-secondary', !sortAsc);
-        toggleButton.classList.toggle('btn-outline-secondary', sortAsc);
-
-        // Update filter buttons
-        const filterButtons = {
-          all: document.getElementById('filter-all'),
-          etf: document.getElementById('filter-etf'),
-          stk: document.getElementById('filter-stk'),
-        };
-
-        Object.entries(filterButtons).forEach(([filter, button]) => {
-          if (!button) return;
-          if (currentFilter === filter) {
-            button.classList.remove('btn-outline-primary');
-            button.classList.add('btn-primary');
+        // Sort buttons
+        document.querySelectorAll('[id^="sort-"]').forEach(btn => {
+          if (btn.id === `sort-${sortField}` || btn.id === 'sort-toggle') {
+            btn.classList.add('btn-primary');
+            btn.classList.remove('btn-outline-primary', 'btn-outline-secondary');
           } else {
-            button.classList.remove('btn-primary');
-            button.classList.add('btn-outline-primary');
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline-primary');
           }
         });
+        
+        document.getElementById('sort-toggle').textContent = sortAsc ? 'Asc' : 'Desc';
       }
 
       function filterAndSortHoldings() {
         updateButtons();
-        updateTotals();
+        
         let filtered = [...currentHoldings];
         
         // Filter
-        if (currentFilter === 'etf') {
-          filtered = filtered.filter(item => item.instrumentType === 'ETF');
-        } else if (currentFilter === 'stk') {
-          filtered = filtered.filter(item => item.instrumentType === 'STK');
-        }
+        if (currentFilter === 'etf') filtered = filtered.filter(item => item.instrumentType === 'ETF');
+        else if (currentFilter === 'stk') filtered = filtered.filter(item => item.instrumentType === 'STK');
         
         // Sort
         filtered.sort((a, b) => {
           let aVal, bVal;
           switch (sortField) {
-            case 'name':
-              aVal = (a.stockName || a.tradingSymbol || "").toLowerCase();
-              bVal = (b.stockName || b.tradingSymbol || "").toLowerCase();
-              break;
-            case 'invested':
-              aVal = parseFloat(a.totalInvested || 0);
-              bVal = parseFloat(b.totalInvested || 0);
-              break;
-            case 'pl':
-              aVal = parseFloat(a.profitPercent || 0);
-              bVal = parseFloat(b.profitPercent || 0);
-              break;
-            default:
-              return 0;
+            case 'name': aVal = (a.stockName || a.tradingSymbol || "").toLowerCase(); bVal = (b.stockName || b.tradingSymbol || "").toLowerCase(); break;
+            case 'invested': aVal = parseFloat(a.totalInvested || 0); bVal = parseFloat(b.totalInvested || 0); break;
+            case 'pl': aVal = parseFloat(a.profitPercent || 0); bVal = parseFloat(b.profitPercent || 0); break;
           }
-          if (sortAsc) {
-            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-          } else {
-            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-          }
+          return sortAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
         });
+
         holdingsRow.innerHTML = filtered.map((item, index) => renderCard(item, index)).join("");
+        updateTotals(filtered);
       }
 
-      // Event listeners for sort buttons
-      document.getElementById('sort-name').addEventListener('click', () => {
-        sortField = 'name';
-        filterAndSortHoldings();
-      });
-      document.getElementById('sort-invested').addEventListener('click', () => {
-        sortField = 'invested';
-        filterAndSortHoldings();
-      });
-      document.getElementById('sort-pl').addEventListener('click', () => {
-        sortField = 'pl';
-        filterAndSortHoldings();
-      });
-      document.getElementById('sort-toggle').addEventListener('click', () => {
-        sortAsc = !sortAsc;
-        filterAndSortHoldings();
-      });
+      // Event Listeners
+      document.getElementById('filter-all').onclick = () => { currentFilter = 'all'; filterAndSortHoldings(); };
+      document.getElementById('filter-etf').onclick = () => { currentFilter = 'etf'; filterAndSortHoldings(); };
+      document.getElementById('filter-stk').onclick = () => { currentFilter = 'stk'; filterAndSortHoldings(); };
+      
+      document.getElementById('sort-name').onclick = () => { sortField = 'name'; filterAndSortHoldings(); };
+      document.getElementById('sort-invested').onclick = () => { sortField = 'invested'; filterAndSortHoldings(); };
+      document.getElementById('sort-pl').onclick = () => { sortField = 'pl'; filterAndSortHoldings(); };
+      document.getElementById('sort-toggle').onclick = () => { sortAsc = !sortAsc; filterAndSortHoldings(); };
 
-      // Event listeners for filter buttons
-      document.getElementById('filter-all').addEventListener('click', () => {
-        currentFilter = 'all';
-        filterAndSortHoldings();
-      });
-      document.getElementById('filter-etf').addEventListener('click', () => {
-        currentFilter = 'etf';
-        filterAndSortHoldings();
-      });
-      document.getElementById('filter-stk').addEventListener('click', () => {
-        currentFilter = 'stk';
-        filterAndSortHoldings();
-      });
-
+      // Auto load
       loadHoldings();
     </script>
   </body>
